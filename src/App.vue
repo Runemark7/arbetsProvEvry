@@ -1,9 +1,5 @@
 <template>
-  <v-app>
-    <v-content>
-      <start/>
-    </v-content>
-  </v-app>
+  <Kommuner/>
 </template>
 
 <script>

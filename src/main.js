@@ -1,14 +1,15 @@
 import Vue from 'vue'
-import './plugins/vuetify'
 import App from './App.vue'
 import router from './router'
 import store from './store'
 
-import start from './components/start';
+import kommuner from './components/kommuner';
+import lan from './components/lan';
 
 Vue.config.productionTip = false
 
-Vue.component("start", start);
+Vue.component("Kommuner", kommuner);
+Vue.component("Lan", lan);
 
 new Vue({
   router,
