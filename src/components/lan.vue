@@ -1,5 +1,7 @@
-<div>
-</div>
+<template>
+    
+</template>
+
 
 <script>
 import dataStore from '../modules/dataHandler';
@@ -7,17 +9,6 @@ import dataStore from '../modules/dataHandler';
 export default {
     data:()=>{
         return{
-            headers: [
-                {
-                    text: 'Kommun',
-                    align: 'left',
-                    sortable: false,
-                    value: 'name'
-                },
-                { text: 'Kön', value: 'xd' },
-                { text: 'Antal', value: 'carbs' },
-                { text: 'Year', value: 'iron' }
-            ],
             myData:[],
         } 
     },
@@ -25,7 +16,7 @@ export default {
  
     },
     async created(){
-        let datan = await dataStore.methods.getData('http://localhost:5000/lan');
+        let datan = await dataStore.methods.getData('http://localhost:5000/kommuner');
 
         datan.forEach(element => {
             this.myData.push(element);

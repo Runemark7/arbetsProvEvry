@@ -13,15 +13,38 @@
                 <h1 class="text-center">Män: {{bannerDataMan}}  </h1>
                 <h1 class="text-center">Kvinnor: {{bannerDataKvinnor}}</h1>
             </div>
-        </div> 
-
-         <div class="kommunerWrapper" v-for="(data,index) in selectedLanData" :key="index">
-            <h1 class="kommunerItem">{{data.key[0]}}</h1>
-            <h2 class="kommunerItem" v-if="data.key[1] === '1'">Män</h2>
-            <h2 class="kommunerItem" v-else>Kvinnor</h2>
-            <h2 class="kommunerItem">{{data.values[0]}}</h2>
-            <h2 class="kommunerItem">{{data.key[2]}}</h2>
+        </div>  
+     
+        <div class="tabellWrapper">
+            <table class="kommunerMainWrapper" >
+                <thead>
+                    <tr>
+                        <td >Kommun</td>
+                        <th >Kön</th>
+                        <th >2013</th>
+                        <th >2014</th>
+                        <th >2015</th>
+                        <th >2016</th>
+                        <th >2017</th>
+                    </tr>
+                </thead>
+                <tbody class="kommunerWrapper" >
+                    <template v-for="(data,index) in selectedLanData">
+                        <tr v-if="data.key[1] ==='1'" :key="index">
+                            <th class="kommunerItem kommun">{{data.key[0]}}</th>
+                            <th class="kommunerItem sex" >Män</th>
+                            <th class="kommunerItem numbers">{{data.values[0]}}</th>
+                        </tr>
+                        <tr v-else :key="index">
+                            <th class="kommunerItem kommun">{{data.key[0]}}</th>
+                            <th class="kommunerItem sex" >Kvinnor</th>
+                            <th class="kommunerItem numbers">{{data.values[0]}}</th>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
         </div>
+        
     </div>
 </template>
 
@@ -121,7 +144,8 @@ import dataStore from '../modules/dataHandler';
 
 export default {
     data:()=>{
-        return{
+        return{ 
+            gridColumns: ['Kommun', 'Kön', 'Antal', 'År'],
             initData:[],
             selectedLanData:[],
             lanData:values,
@@ -148,7 +172,6 @@ export default {
         this.bannerDataMan = 0;
         this.selectedLanData.forEach(element => {
             if(element.key[1] == '1'){
-                
                 this.bannerDataMan += parseInt(element.values[0]) 
             }
             else{
@@ -180,11 +203,30 @@ export default {
 .kon{
     display:flex;
 }
-.kommunerWrapper{
-    display:flex;
-    .kommunerItem{
-        padding:20px;
+.mainWrapper{
+    width:100%;
+}   
+
+
+.kommunerMainWrapper{
+    width:100%;
+    .men{
+        .kommunerWrapper{
+            display:flex;
+            .kommunerItem{
+                width:25%;
+            }
+        }
     }
-    
+    .women{
+
+        .kommunerWrapper{
+            display:flex;
+            .kommunerItem{
+                width:25%;
+            }
+        }
+    }
 }
+
 </style>
