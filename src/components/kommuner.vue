@@ -4,8 +4,7 @@
             <div class="bannerHeader">
                 <h1 class="text-center">Antal Födda {{yearStart}} - {{yearStop}} </h1>
             </div>
-                <h1 class="text-center" v-if="this.selectedLan">{{this.selectedLan}}</h1>
-                <h1 class="text-center" v-else>Välj ett län</h1>
+          
             <div class="selectedLan" v-for="(lan,index) in lanData" :key="index">
                 <h2 class="text-center" @click="getLanData(lan.name,lan.ids)">{{lan.name}}</h2>
             </div>
@@ -13,38 +12,51 @@
                 <h1 class="text-center">Män: {{bannerDataMan}}  </h1>
                 <h1 class="text-center">Kvinnor: {{bannerDataKvinnor}}</h1>
             </div>
-        </div>  
+        </div> 
      
-        <div class="tabellWrapper">
+        <h1 class="text-center" v-if="this.selectedLan">{{this.selectedLan}}</h1>
+        <h1 class="text-center" v-else>Välj ett län</h1>
+            
+       <div class="tabellWrapper">
+           <input type="text" v-model="search"/>
             <table class="kommunerMainWrapper" >
                 <thead>
                     <tr>
-                        <td >Kommun</td>
-                        <th >Kön</th>
-                        <th >2013</th>
-                        <th >2014</th>
-                        <th >2015</th>
-                        <th >2016</th>
-                        <th >2017</th>
+                      <th v-for="(column,index) in columns" :key="index">
+                          <a href="#"
+                             @click="sortBy(column)"
+                             >
+                             {{ column }}
+                             </a>
+                      </th>
                     </tr>
                 </thead>
                 <tbody class="kommunerWrapper" >
-                    <template v-for="(data,index) in selectedLanData">
-                        <tr v-if="data.key[1] ==='1'" :key="index">
-                            <th class="kommunerItem kommun">{{data.key[0]}}</th>
-                            <th class="kommunerItem sex" >Män</th>
-                            <th class="kommunerItem numbers">{{data.values[0]}}</th>
-                        </tr>
-                        <tr v-else :key="index">
-                            <th class="kommunerItem kommun">{{data.key[0]}}</th>
-                            <th class="kommunerItem sex" >Kvinnor</th>
-                            <th class="kommunerItem numbers">{{data.values[0]}}</th>
-                        </tr>
+                    <template v-for="data in selectedLanDataParsed">
+                        <template v-for="(dataItem,index) in data">
+                            <tr v-if="dataItem.gender === '1'" :key="index">
+                                <th class="kommunerItem kommun">{{dataItem.region}}</th>
+                                <th class="kommunerItem sex" >Män</th>
+                                <th class="kommunerItem value" >{{dataItem["2013"]}}</th>
+                                <th class="kommunerItem value" >{{dataItem["2014"]}}</th>
+                                <th class="kommunerItem value" >{{dataItem["2015"]}}</th>
+                                <th class="kommunerItem value" >{{dataItem["2016"]}}</th>
+                                <th class="kommunerItem value" >{{dataItem["2017"]}}</th>
+                            </tr>
+                            <tr v-else :key="index">
+                                <th class="kommunerItem kommun">{{dataItem.region}}</th>
+                                <th class="kommunerItem sex" >Kvinnor</th>
+                                <th class="kommunerItem value" >{{dataItem["2013"]}}</th>
+                                <th class="kommunerItem value" >{{dataItem["2014"]}}</th>
+                                <th class="kommunerItem value" >{{dataItem["2015"]}}</th>
+                                <th class="kommunerItem value" >{{dataItem["2016"]}}</th>
+                                <th class="kommunerItem value" >{{dataItem["2017"]}}</th>
+                            </tr>
+                        </template>
                     </template>
                 </tbody>
             </table>
         </div>
-        
     </div>
 </template>
 
@@ -145,9 +157,13 @@ import dataStore from '../modules/dataHandler';
 export default {
     data:()=>{
         return{ 
-            gridColumns: ['Kommun', 'Kön', 'Antal', 'År'],
+            sortKey:'',
+            search:'',
+            reverse:false,
+            columns:['Kommun','Kön','2013','2014','2015','2016','2017'],
             initData:[],
             selectedLanData:[],
+            selectedLanDataParsed:[],
             lanData:values,
             bannerDataMan:0,
             bannerDataKvinnor:0,
@@ -158,8 +174,9 @@ export default {
     }, 
     methods:{
        getLanData(selectedName, ids){
-           this.selectedLan = selectedName;
+        this.selectedLan = selectedName;
         this.selectedLanData = [];
+        this.selectedLanDataParsed = [];
         let arr2 = this.initData;
         
         arr2.forEach(e1 => ids.forEach(e2 => 
@@ -179,7 +196,46 @@ export default {
             }
         });
 
+        //parsa datan till tabellen
+        /*let parsed = {};
+        let source = this.selectedLanData;
+        for (var i=0; i<source.length; i++) {
+            var key = source[i].key;
+            if (!(source[i].key[0] in parsed)) {
+                parsed[source[i].key[0]] = {};
+            }
+            if (!(source[i].key[1] in parsed[source[i].key[0]])) {
+                parsed[source[i].key[0]][source[i].key[1]] = {};
+            }
+            if (!(source[i].key[2] in parsed[source[i].key[0]][source[i].key[1]])) {
+                parsed[source[i].key[0]][source[i].key[1]][source[i].key[2]] = 0;
+            }
+            parsed[source[i].key[0]][source[i].key[1]][source[i].key[2]] += parseInt(source[i].values);
+        }
+        console.log(parsed);*/
+     
+
+
+        const source = this.selectedLanData;
+        const tableRows  = source.reduce((rows, value) => {
+        let currentRow = rows.find(row => row.region === value.key[0] && row.gender === value.key[1]);
+        if (!currentRow) {
+            currentRow = {region: value.key[0], gender: value.key[1]};
+            rows.push(currentRow);
+        }
+        currentRow[value.key[2]] = value.values[0];
+        return rows;
+        }, []);
+        this.selectedLanDataParsed.push(tableRows);
         },
+
+        sortBy(sortKey){
+            this.reverse = (this.sortKey == sortKey) ? ! this.reverse : false;
+            this.sortKey = sortKey;
+        },
+    },
+    computed:{
+       
     },
     async created(){
         let kommunData = await dataStore.methods.getData('http://localhost:5000/kommuner');

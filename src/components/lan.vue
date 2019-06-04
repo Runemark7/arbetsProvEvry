@@ -1,5 +1,20 @@
 <template>
-    
+    <tbody class="kommunerWrapper" >
+                    <template v-for="(data,index) in selectedLanData">
+                        <tr v-if="data.key[1] ==='1'" :key="index">
+                            <th class="kommunerItem kommun">{{data.key[0]}}</th>
+                            <th class="kommunerItem sex" >Män</th>
+                            <th class="kommunerItem numbers">{{data.values[0]}}</th>
+                            <th class="kommunerItem numbers">{{data.key[2]}}</th>
+                        </tr>
+                        <tr v-else :key="index">
+                            <th class="kommunerItem kommun">{{data.key[0]}}</th>
+                            <th class="kommunerItem sex" >Kvinnor</th>
+                            <th class="kommunerItem numbers">{{data.values[0]}}</th>
+                            <th class="kommunerItem numbers">{{data.key[2]}}</th>
+                        </tr>
+                    </template>
+                </tbody>
 </template>
 
 
@@ -10,6 +25,7 @@ export default {
     data:()=>{
         return{
             myData:[],
+            selectedLanData:[]
         } 
     },
     methods:{
