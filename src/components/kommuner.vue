@@ -1,64 +1,42 @@
 <template>
-    <div class="mainWrapper">
+        <div class="mainWrapper">
         <div class="bannerWrapper">
-            <div class="bannerHeader">
-                <h1 class="text-center">Antal Födda {{yearStart}} - {{yearStop}} </h1>
-            </div>
-          
             <div class="selectedLan" v-for="(lan,index) in lanData" :key="index">
-                <h2 class="text-center" @click="getLanData(lan.name,lan.ids)">{{lan.name}}</h2>
-            </div>
-            <div class="kon">
-                <h1 class="text-center">Män: {{bannerDataMan}}  </h1>
-                <h1 class="text-center">Kvinnor: {{bannerDataKvinnor}}</h1>
+                <h2 class="lanItem text-center" @click="getLanData(lan.name,lan.ids)">{{lan.name}}</h2>
             </div>
         </div> 
-     
+
         <h1 class="text-center" v-if="this.selectedLan">{{this.selectedLan}}</h1>
         <h1 class="text-center" v-else>Välj ett län</h1>
-            
-       <div class="tabellWrapper">
-           <input type="text" v-model="search"/>
             <table class="kommunerMainWrapper" >
                 <thead>
                     <tr>
-                      <th v-for="(column,index) in columns" :key="index">
-                          <a href="#"
-                             @click="sortBy(column)"
-                             >
-                             {{ column }}
-                             </a>
-                      </th>
+                        <th @click="sort('region')">Name</th>
+                        <th @click="sort('gender')">Age</th>
+                        <th @click="sort('2013')">Breed</th>
+                        <th @click="sort('2014')">Gender</th>
+                        <th @click="sort('2015')">Gender</th>
+                        <th @click="sort('2016')">Gender</th>
+                        <th @click="sort('2017')">Gender</th>
                     </tr>
                 </thead>
                 <tbody class="kommunerWrapper" >
-                    <template v-for="data in selectedLanDataParsed">
-                        <template v-for="(dataItem,index) in data">
-                            <tr v-if="dataItem.gender === '1'" :key="index">
-                                <th class="kommunerItem kommun">{{dataItem.region}}</th>
-                                <th class="kommunerItem sex" >Män</th>
-                                <th class="kommunerItem value" >{{dataItem["2013"]}}</th>
-                                <th class="kommunerItem value" >{{dataItem["2014"]}}</th>
-                                <th class="kommunerItem value" >{{dataItem["2015"]}}</th>
-                                <th class="kommunerItem value" >{{dataItem["2016"]}}</th>
-                                <th class="kommunerItem value" >{{dataItem["2017"]}}</th>
-                            </tr>
-                            <tr v-else :key="index">
-                                <th class="kommunerItem kommun">{{dataItem.region}}</th>
-                                <th class="kommunerItem sex" >Kvinnor</th>
-                                <th class="kommunerItem value" >{{dataItem["2013"]}}</th>
-                                <th class="kommunerItem value" >{{dataItem["2014"]}}</th>
-                                <th class="kommunerItem value" >{{dataItem["2015"]}}</th>
-                                <th class="kommunerItem value" >{{dataItem["2016"]}}</th>
-                                <th class="kommunerItem value" >{{dataItem["2017"]}}</th>
-                            </tr>
-                        </template>
+                    <template v-for="(data,index) in sortedKommuner">
+                        <tr v-if="data.gender === '1'" :key="index">
+                            <th class="kommunerItem kommun">{{data.region}}</th>
+                            <th class="kommunerItem sex" >{{data.gender}}</th>
+                            <th class="kommunerItem value" >{{data["2013"]}}</th>
+                            <th class="kommunerItem value" >{{data["2014"]}}</th>
+                            <th class="kommunerItem value" >{{data["2015"]}}</th>
+                            <th class="kommunerItem value" >{{data["2016"]}}</th>
+                            <th class="kommunerItem value" >{{data["2017"]}}</th>
+                        </tr>
                     </template>
                 </tbody>
             </table>
         </div>
-    </div>
 </template>
+
 
 <script>
 let values = [ 
@@ -152,28 +130,32 @@ let values = [
     }, 
     ]
 
+
 import dataStore from '../modules/dataHandler';
 
 export default {
     data:()=>{
-        return{ 
-            sortKey:'',
-            search:'',
-            reverse:false,
-            columns:['Kommun','Kön','2013','2014','2015','2016','2017'],
-            initData:[],
-            selectedLanData:[],
-            selectedLanDataParsed:[],
-            lanData:values,
-            bannerDataMan:0,
-            bannerDataKvinnor:0,
-            yearStart:2013,
-            yearStop:2017,
-            selectedLan:'',
+        return{
+        currentSort:'region',
+        currentSortDir:'asc',
+
+        initData:[],
+        selectedLanData:[],
+        selectedLanDataParsed:[],
+        lanData:values,
+        selectedLan:'',
+       
         } 
     }, 
+    created:async function() {
+       let kommunData = await dataStore.methods.getData('http://localhost:5000/kommuner');
+
+        kommunData.forEach(element => {
+            this.initData.push(element);
+        });
+    },
     methods:{
-       getLanData(selectedName, ids){
+        getLanData(selectedName, ids){
         this.selectedLan = selectedName;
         this.selectedLanData = [];
         this.selectedLanDataParsed = [];
@@ -184,37 +166,6 @@ export default {
                 this.selectedLanData.push(e1);
             }}
         ));
-        
-        this.bannerDataKvinnor = 0;
-        this.bannerDataMan = 0;
-        this.selectedLanData.forEach(element => {
-            if(element.key[1] == '1'){
-                this.bannerDataMan += parseInt(element.values[0]) 
-            }
-            else{
-                this.bannerDataKvinnor += parseInt(element.values[0]) 
-            }
-        });
-
-        //parsa datan till tabellen
-        /*let parsed = {};
-        let source = this.selectedLanData;
-        for (var i=0; i<source.length; i++) {
-            var key = source[i].key;
-            if (!(source[i].key[0] in parsed)) {
-                parsed[source[i].key[0]] = {};
-            }
-            if (!(source[i].key[1] in parsed[source[i].key[0]])) {
-                parsed[source[i].key[0]][source[i].key[1]] = {};
-            }
-            if (!(source[i].key[2] in parsed[source[i].key[0]][source[i].key[1]])) {
-                parsed[source[i].key[0]][source[i].key[1]][source[i].key[2]] = 0;
-            }
-            parsed[source[i].key[0]][source[i].key[1]][source[i].key[2]] += parseInt(source[i].values);
-        }
-        console.log(parsed);*/
-     
-
 
         const source = this.selectedLanData;
         const tableRows  = source.reduce((rows, value) => {
@@ -223,36 +174,54 @@ export default {
             currentRow = {region: value.key[0], gender: value.key[1]};
             rows.push(currentRow);
         }
-        currentRow[value.key[2]] = value.values[0];
+        currentRow[value.key[2]] = parseInt(value.values[0]);
         return rows;
         }, []);
-        this.selectedLanDataParsed.push(tableRows);
+        tableRows.forEach(element => {
+            this.selectedLanDataParsed.push(element);
+        });
         },
-
-        sortBy(sortKey){
-            this.reverse = (this.sortKey == sortKey) ? ! this.reverse : false;
-            this.sortKey = sortKey;
-        },
+         
+        sort(s) {
+        if(s === this.currentSort) {
+            this.currentSortDir = this.currentSortDir==='asc'?'desc':'asc';
+            }
+            this.currentSort = s;
+        }
     },
     computed:{
-       
-    },
-    async created(){
-        let kommunData = await dataStore.methods.getData('http://localhost:5000/kommuner');
-
-        kommunData.forEach(element => {
-            this.initData.push(element);
-        });
+        sortedKommuner(){
+            return this.selectedLanDataParsed.sort((a,b) => {
+                let modifier = 1;
+                if(this.currentSortDir === 'desc')
+                {
+                    modifier = -1;
+                }
+                if(a[this.currentSort] < b[this.currentSort])
+                {
+                    return -1 * modifier;
+                } 
+                if(a[this.currentSort] > b[this.currentSort])
+                {
+                    return 1 * modifier;
+                }
+                return 0;
+            });
+        },
     }
 }
 </script>
 
 <style scoped lang="scss">
-*{
-    padding:0;
-    margin:0;
-    box-sizing: border-box;
+td, th {
+  padding: 5px;
 }
+
+th {
+  cursor:pointer;
+}
+
+
 .text-center{
     text-align:center;
 }
@@ -261,28 +230,30 @@ export default {
 }
 .mainWrapper{
     width:100%;
+    .lanItem{
+        background-color:black;
+        color:white;
+    }
+
+    .kommunerMainWrapper{
+        width:100%;
+        .men{
+            .kommunerWrapper{
+                display:flex;
+                .kommunerItem{
+                    width:25%;
+                }
+            }
+        }
+        .women{
+            .kommunerWrapper{
+                display:flex;
+                .kommunerItem{
+                    width:25%;
+                }
+            }
+        }
+    }
 }   
-
-
-.kommunerMainWrapper{
-    width:100%;
-    .men{
-        .kommunerWrapper{
-            display:flex;
-            .kommunerItem{
-                width:25%;
-            }
-        }
-    }
-    .women{
-
-        .kommunerWrapper{
-            display:flex;
-            .kommunerItem{
-                width:25%;
-            }
-        }
-    }
-}
 
 </style>
