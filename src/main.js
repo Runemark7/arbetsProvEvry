@@ -4,12 +4,17 @@ import router from './router'
 import store from './store'
 
 import kommuner from './components/kommuner';
-import lan from './components/lan';
 
 Vue.config.productionTip = false
 
+//Gör kommuner gloal
 Vue.component("Kommuner", kommuner);
-Vue.component("Lan", lan);
+
+//svg map dependencies
+import svgJs from "./plugins/vueSvgPlugin"
+
+Vue.use(svgJs);
+
 
 new Vue({
   router,

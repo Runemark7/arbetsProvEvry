@@ -1,185 +1,119 @@
 <template>
-        <div class="mainWrapper">
-        <div class="bannerWrapper">
-            <div class="selectedLan" v-for="(lan,index) in lanData" :key="index">
-                <h2 class="lanItem text-center" @click="getLanData(lan.name,lan.ids)">{{lan.name}}</h2>
-            </div>
-        </div> 
+    <div class="mainWrapper">
 
-        <h1 class="text-center" v-if="this.selectedLan">{{this.selectedLan}}</h1>
-        <h1 class="text-center" v-else>Välj ett län</h1>
-            <table class="kommunerMainWrapper" >
+        <div class="wrapperLeft">
+            <sweden-map v-on:map-clicked="onMapClick"></sweden-map>
+        </div>
+
+        <div class="wrapperRight">
+            <h1 class="selctedLan text-center" v-if="this.selectedLan">{{this.selectedLan}}</h1>
+            <h1 class="selctedLan text-center" v-else>Välj ett län</h1>
+            <table v-if="selectedLan">
                 <thead>
                     <tr>
-                        <th @click="sort('region')">Name</th>
-                        <th @click="sort('gender')">Age</th>
-                        <th @click="sort('2013')">Breed</th>
-                        <th @click="sort('2014')">Gender</th>
-                        <th @click="sort('2015')">Gender</th>
-                        <th @click="sort('2016')">Gender</th>
-                        <th @click="sort('2017')">Gender</th>
+                        <th @click="sort('region')">Kommun</th>
+                        <th @click="sort('gender')">Kön</th>
+                        <th @click="sort('2013')">2013</th>
+                        <th @click="sort('2014')">2014</th>
+                        <th @click="sort('2015')">2015</th>
+                        <th @click="sort('2016')">2016</th>
+                        <th @click="sort('2017')">2017</th>
                     </tr>
                 </thead>
-                <tbody class="kommunerWrapper" >
+                <tbody>
                     <template v-for="(data,index) in sortedKommuner">
-                        <tr v-if="data.gender === '1'" :key="index">
-                            <th class="kommunerItem kommun">{{data.region}}</th>
-                            <th class="kommunerItem sex" >{{data.gender}}</th>
-                            <th class="kommunerItem value" >{{data["2013"]}}</th>
-                            <th class="kommunerItem value" >{{data["2014"]}}</th>
-                            <th class="kommunerItem value" >{{data["2015"]}}</th>
-                            <th class="kommunerItem value" >{{data["2016"]}}</th>
-                            <th class="kommunerItem value" >{{data["2017"]}}</th>
+                        <tr class="kommunerItemWrapper" :key="index">
+                            <th class="kommunerItem" >{{data.region}}</th>
+                            <th class="kommunerItem" v-if="data.gender === '1'">Män</th>
+                            <th class="kommunerItem" v-else>Kvinnor</th>
+                            <th class="kommunerItem" >{{data["2013"]}}</th>
+                            <th class="kommunerItem" >{{data["2014"]}}</th>
+                            <th class="kommunerItem" >{{data["2015"]}}</th>
+                            <th class="kommunerItem" >{{data["2016"]}}</th>
+                            <th class="kommunerItem" >{{data["2017"]}}</th>
                         </tr>
                     </template>
                 </tbody>
             </table>
         </div>
+
+    </div>
 </template>
 
 
 <script>
-let values = [ 
-    {   
-        "name":"Hela Sverige",
-        "ids":["0114","0115","0117","0120","0123","0125","0126","0127","0128","0136","0138","0139","0140","0160","0162","0163","0180","0181","0182","0183","0184","0186","0187","0188","0191","0192"]
-    }, 
-    {   
-        "name":"Stockholm",
-        "ids":["0114","0115","0117","0120","0123","0125","0126","0127","0128","0136","0138","0139","0140","0160","0162","0163","0180","0181","0182","0183","0184","0186","0187","0188","0191","0192"]
-    }, 
-    {   
-        "name":"Uppsala",
-        "ids":["0305","0319", "0330", "0331", "0360", "0380", "0381", "0382"]
-    }, 
-    {   
-        "name":"Södermanland",
-        "ids":["0428","0461", "0480", "0481", "0482", "0483", "0484", "0486", "0488"]
-    }, 
-    {   
-        "name":"Östergötland",
-        "ids":["0509", "0512", "0513", "0560", "0561", "0562", "0563", "0580", "0581", "0582", "0583", "0584","0586"]
-    }, 
-    {   
-        "name":"Jönköping",
-        "ids":["0604", "0617", "0642", "0643", "0662", "0665", "0680", "0682", "0683", "0684", "0685", "0686", "0687"]
-    }, 
-    {   
-        "name":"Kronoberg",
-        "ids":["0760","0761","0763", "0764", "0765", "0767", "0780", "0781"]
-    }, 
-    {   
-        "name":"Kalmar",
-        "ids":["0821", "0834", "0840", "0860", "0861", "0862", "0880", "0881", "0882", "0883", "0884", "0885"]
-    }, 
-    {   
-        "name":"Gotland",
-        "ids":["0980"]
-    }, 
-    {   
-        "name":"Blekinge",
-        "ids":["1060", "1080", "1081", "1082", "1083"]
-    }, 
-    {       
-        "name":"Skåne",
-        "ids":["1214","1230","1231","1233","1256","1257","1260","1261","1262","1263","1264","1265","1266","1267","1270","1272","1273","1275","1276","1277","1278","1280","1281","1282","1283","1284","1285","1286","1287","1290","1291","1292","1293"]
-    },
-    {      
-        "name":"Halland",
-        "ids":["1315", "1380", "1381", "1382", "1383", "1384"]
-    },  
-    {      
-        "name":"Västra Götaland",
-        "ids":["1401", "1402", "1407", "1415", "1419", "1421", "1427", "1430", "1435", "1438", "1439", "1440", "1441", "1442", "1443", "1444", "1445", "1446", "1447", "1452", "1460", "1461", "1462", "1463", "1465", "1466", "1470", "1471", "1472", "1473", "1480", "1481", "1482", "1484", "1485", "1486", "1487", "1488", "1489", "1490", "1491", "1492", "1493", "1494", "1495", "1496", "1497", "1498", "1499"]
-    },
-    {      
-        "name":"Värmland",
-        "ids":["1715", "1730", "1737", "1760", "1761", "1762", "1763", "1764", "1765", "1766", "1780", "1781", "1782", "1783", "1784", "1785"]
-    },
-    {      
-        "name":"Örebro",
-        "ids":["1814","1860","1861","1862","1863","1864","1880","1881","1882","1883","1884","1885"]
-    },   
-    {      
-        "name":"Västmanlands",
-        "ids":["1904", "1907", "1960", "1961", "1962", "1980", "1981", "1982", "1983", "1984"]
-    },  
-    {      
-        "name":"Dalarna",
-        "ids":["2021", "2023", "2026", "2029", "2031", "2034", "2039", "2061", "2062", "2080", "2081", "2082", "2083", "2084", "2085"]
-    }, 
-    {      
-        "name":"Gävleborg",
-        "ids":["2101", "2104", "2121", "2132", "2161", "2180", "2181", "2182", "2183", "2184"]
-    }, 
-    {      
-        "name":"Västernorrland",
-        "ids":["2260", "2262", "2280", "2281", "2282", "2283", "2284"]
-    }, 
-    {      
-        "name":"Jämtland",
-        "ids":["2303", "2305", "2309", "2313", "2321", "2326", "2361", "2380"]
-    }, 
-    {      
-        "name":"Västerbotten",
-        "ids":["2401", "2403", "2404", "2409", "2417", "2418", "2421", "2422", "2425", "2460", "2462", "2463", "2480", "2481", "2482"]
-    }, 
-    {      
-        "name":"Norrbotten",
-        "ids":["2505", "2506", "2510", "2513", "2514", "2518", "2521", "2523", "2560", "2580", "2581", "2582", "2583", "2584"]
-    }, 
-    ]
-
 
 import dataStore from '../modules/dataHandler';
+import swedenMap from './swedenMap.vue'
 
 export default {
+    components: {
+        swedenMap
+    },
     data:()=>{
         return{
         currentSort:'region',
         currentSortDir:'asc',
 
         initData:[],
-        selectedLanData:[],
         selectedLanDataParsed:[],
-        lanData:values,
+        lanData:[],
         selectedLan:'',
-       
+            
         } 
     }, 
     created:async function() {
-       let kommunData = await dataStore.methods.getData('http://localhost:5000/kommuner');
+        let lanData = await dataStore.methods.getData('http://localhost:5000/lan');
+
+        lanData.forEach(element => {
+            this.lanData.push(element);
+        });
+
+        let kommunData = await dataStore.methods.getData('http://localhost:5000/kommuner');
 
         kommunData.forEach(element => {
             this.initData.push(element);
         });
     },
     methods:{
-        getLanData(selectedName, ids){
-        this.selectedLan = selectedName;
-        this.selectedLanData = [];
-        this.selectedLanDataParsed = [];
-        let arr2 = this.initData;
-        
-        arr2.forEach(e1 => ids.forEach(e2 => 
-            { if(e1.key[0] === e2){
-                this.selectedLanData.push(e1);
-            }}
-        ));
+        onMapClick: function(attr){
+            this.selectedLan = attr.title;
+            this.getLanData(attr.title);
+        },
+        getLanData(selectedName){
+            let selectedLanData = [];
+            this.selectedLanDataParsed = [];
+            let ids = [];
 
-        const source = this.selectedLanData;
-        const tableRows  = source.reduce((rows, value) => {
-        let currentRow = rows.find(row => row.region === value.key[0] && row.gender === value.key[1]);
-        if (!currentRow) {
-            currentRow = {region: value.key[0], gender: value.key[1]};
-            rows.push(currentRow);
-        }
-        currentRow[value.key[2]] = parseInt(value.values[0]);
-        return rows;
-        }, []);
-        tableRows.forEach(element => {
-            this.selectedLanDataParsed.push(element);
-        });
+            this.lanData.forEach(element => {
+                if(element.name == selectedName){
+                    element.ids.forEach(el => {
+                        ids.push(el)
+                    });
+                }
+            });
+            
+            let arr2 = this.initData;
+            arr2.forEach(e1 => ids.forEach(e2 => 
+                { if(e1.key[0] === e2){
+                    selectedLanData.push(e1);
+                }}
+            ));
+
+            const source = selectedLanData;
+            const tableRows  = source.reduce((rows, value) => {
+            let currentRow = rows.find(row => row.region === value.key[0] && row.gender === value.key[1]);
+            if (!currentRow) {
+                currentRow = {region: value.key[0], gender: value.key[1]};
+                rows.push(currentRow);
+            }
+            currentRow[value.key[2]] = parseInt(value.values[0]);
+            return rows;
+            }, []);
+
+            tableRows.forEach(element => {
+                this.selectedLanDataParsed.push(element);
+            });
         },
          
         sort(s) {
@@ -191,7 +125,8 @@ export default {
     },
     computed:{
         sortedKommuner(){
-            return this.selectedLanDataParsed.sort((a,b) => {
+            let data = this.selectedLanDataParsed;
+            return data.sort((a,b) => {
                 let modifier = 1;
                 if(this.currentSortDir === 'desc')
                 {
@@ -213,47 +148,132 @@ export default {
 </script>
 
 <style scoped lang="scss">
-td, th {
-  padding: 5px;
-}
-
-th {
-  cursor:pointer;
-}
-
-
-.text-center{
-    text-align:center;
-}
-.kon{
-    display:flex;
-}
-.mainWrapper{
+@media only screen and (max-width: 600px) {
+ .mainWrapper{
+    height:auto;
+    font-family: sans-serif;
     width:100%;
-    .lanItem{
-        background-color:black;
-        color:white;
+    padding:5px;
+    .text-center{
+        text-align:center;
     }
 
-    .kommunerMainWrapper{
+    .wrapperLeft{
         width:100%;
-        .men{
-            .kommunerWrapper{
-                display:flex;
-                .kommunerItem{
-                    width:25%;
+    }
+    
+    .wrapperRight{
+        width:100%;
+        table{
+
+            -webkit-box-shadow: 0 0px 40px 0px rgba(0, 0, 0, 0.15);
+            -o-box-shadow: 0 0px 40px 0px rgba(0, 0, 0, 0.15);
+            -ms-box-shadow: 0 0px 40px 0px rgba(0, 0, 0, 0.15);
+            border-collapse: collapse;
+            border:1px solid black;
+            width:100%;
+            margin:auto;
+            tr,th{
+                overflow: hidden;
+                padding:2px;
+            }
+                
+            thead{
+                background-color:black;
+                tr{
+                    height:25px;
+                    th{
+                        padding:3px;
+                        color:white;
+                        font-size:14px;
+                        font-weight: 600;
+                    }
+                }
+                
+            }
+            tbody tr:nth-child(odd){
+                background-color: #f2f2f24f;
+            }
+            tr,th{
+                text-align: left;
+                border:1px solid black;
+            }
+            tbody{
+                tr{
+                    th{
+                        padding:3px;
+                        font-size:14px;
+                        padding-top:1px;
+                        padding-bottom:1px;
+                    }
                 }
             }
         }
-        .women{
-            .kommunerWrapper{
-                display:flex;
-                .kommunerItem{
-                    width:25%;
+    }
+} 
+}
+@media(min-width:768px)
+{
+    .mainWrapper{
+    font-family: sans-serif;
+    display:flex;
+    width:100%;
+    padding:30px;
+    .text-center{
+        text-align:center;
+    }
+ 
+
+    .wrapperLeft{
+        width:30%;
+    }
+    
+    .wrapperRight{
+        width:70%;
+        
+        table{
+            
+            border-collapse: collapse;
+            border:1px solid black;
+            width:95%;
+            margin:auto;
+            tr,th{
+                padding:10px;
+            }
+                
+            thead{
+                background-color:black;
+                tr{
+                    height:50px;
+                    th{
+                        color:white;
+                        font-size:24px;
+                    }
+                }
+                
+            }
+            tbody tr:nth-child(odd){
+                background-color: #f2f2f2;
+            }
+            tbody tr:hover{
+                background-color: #ddd;
+            }
+            tr,th{
+                  text-align: left;
+                border:1px solid black;
+            }
+            tbody{
+                tr{
+                    th{
+                        padding-top:5px;
+                        padding-bottom:5px;
+                    }
                 }
             }
         }
     }
 }   
+}
+
 
 </style>
